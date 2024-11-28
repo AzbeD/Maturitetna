@@ -2,7 +2,7 @@ import easyocr
 import cv2
 from matplotlib import pyplot as plt
 
-img_path = "Slike/barila.jpg"
+img_path = "Slike/ucbenik.jpg"
 
 def readText():
     jezik = izberiJezik()
@@ -23,16 +23,13 @@ def readText():
         
         font = cv2.FONT_HERSHEY_SIMPLEX
         allText =  []
-        coords = []
         for detection in result:
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
             text = detection[1]
             img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
             allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
-        plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-        plt.show()
-        return allText
+        return allText, img
     else:
         print("Napaka pri vnosu jezika")
 
@@ -45,15 +42,19 @@ def izberiJezik():
     else:
         print("Napaka pri vnosu jezika")
         return None
+    
 def getCoords(allText):
     for text in allText:
         print(text['text'])
         print(text['coordinates'])
 
 def Main():
-    allText = readText()
-    if allText:
-        coordinates = getCoords(allText)
+    result = readText()
+    if result:
+        allText, img = result
+        getCoords(allText)
+        plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        plt.show()
     else:
         print("Napaka pri branju besedila")
 
