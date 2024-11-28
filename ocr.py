@@ -2,7 +2,7 @@ import easyocr
 import cv2
 from matplotlib import pyplot as plt
 
-img_path = "Slike/dnevnik.jpg"
+img_path = "Slike/barila.jpg"
 
 def readText():
     jezik = izberiJezik()
@@ -30,7 +30,6 @@ def readText():
             text = detection[1]
             img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
             allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
-        #print(allText)
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         plt.show()
         return allText
