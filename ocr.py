@@ -2,7 +2,7 @@ import easyocr
 import cv2
 from matplotlib import pyplot as plt
 
-img_path = "Slike/ucbenik.jpg"
+img_path = "Slike/knjiga.jpg"
 
 def readText():
     jezik = izberiJezik()
@@ -21,7 +21,6 @@ def readText():
             print("No text detected in the image.")
             return
         
-        font = cv2.FONT_HERSHEY_SIMPLEX
         allText =  []
         for detection in result:
             top_left = tuple(map(int, detection[0][0]))
