@@ -5,7 +5,7 @@ import logging
 import tkinter
 from tkinter import filedialog
 
-img_path = "Slike/knjiga.jpg"
+img_path = "Slike/Mobile_photos/MobPhoto_1.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -27,11 +27,13 @@ def readText(jezik):
             
         allText =  []
         for detection in result:
+            print(detection)
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
-            text = detection[1]
-            img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
-            allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
+            if(detection[2] > 0.7):
+                text = detection[1]
+                img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
+                allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
         return allText, img
     except Exception as e:
         logging.error(f"Napaka pri branju teksta: {e}")
