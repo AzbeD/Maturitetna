@@ -5,7 +5,7 @@ import logging
 import tkinter
 from tkinter import filedialog
 
-img_path = "Slike/Mobile_photos/MobPhoto_1.jpg"
+img_path = "Slike/Random/knjiga.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
