@@ -5,7 +5,7 @@ import logging
 import tkinter
 from tkinter import filedialog
 
-img_path = "Slike/Mobile_photos/MobPhoto_1.jpg"
+img_path = "Slike/Random/ucbenik.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -53,6 +53,7 @@ def izpisTekst(allText):
     for text in allText:
         print(text['text'])
         print(text['coordinates'])
+        return None
 
 def Main():
     jezik = izberiJezik()
@@ -62,8 +63,10 @@ def Main():
         izpisTekst(allText)
         plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
         plt.show()
+        return allText
     else:
         logging.info("Brez zaznanega besedila")
+        return None
 
 if __name__ == "__main__":
     Main()
