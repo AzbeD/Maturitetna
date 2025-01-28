@@ -5,7 +5,7 @@ import logging
 import tkinter
 from tkinter import filedialog
 
-img_path = "Slike/Random/ucbenik.jpg"
+img_path = "Slike/Random/barila.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -27,7 +27,6 @@ def readText(jezik):
             
         allText =  []
         for detection in result:
-            print(detection)
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
             if(detection[2] > 0.7):
@@ -51,8 +50,9 @@ def izberiJezik():
     
 def izpisTekst(allText):
     for text in allText:
-        print(text['text'])
-        print(text['coordinates'])
+        print(allText)
+        #print(text['text'])
+        #print(text['coordinates'])
         return None
 
 def Main():
