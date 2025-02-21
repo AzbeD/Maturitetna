@@ -7,7 +7,7 @@ from tkinter import filedialog
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 
-img_path = "Slike/Random/ucbenik.jpg"
+img_path = "Slike/Random/barila.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -52,7 +52,8 @@ def readText(jezik):
 
 def izpisTekst(allText):
     for text in allText:
-        print(allText)
+        print(text['text'])
+        print(text['coordinates'])
         return None
     
 def prikaziSliko(img):
