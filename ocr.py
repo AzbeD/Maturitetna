@@ -7,7 +7,7 @@ from tkinter import filedialog
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 
-img_path = "Slike/Random/barila.jpg"
+img_path = "Slike/Random/doors.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -79,25 +79,34 @@ def prekrijTekst(result, img):
     if img is None:
         logging.error("Napaka pri branju slike")
         return
-    
-    font_path = "font/arial.ttf"
-    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    draw = ImageDraw.Draw(img_pil)
     for detection in result:
         if(detection[2] > 0.7):
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
             text = detection[1]
             font_size = vrniFontSize(top_left, bottom_right)
+            font_path = "font/arial.ttf"
+            font = ImageFont.truetype(font_path, font_size)
+            roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+            blurred_roi = cv2.blur(roi, (100, 100))
+            img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
+
+    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(img_pil)
+
+    for detection in result:
+        if(detection[2] > 0.7):
+            top_left = tuple(map(int, detection[0][0]))
+            bottom_right = tuple(map(int, detection[0][2]))
+            text = detection[1]
+            font_size = vrniFontSize(top_left, bottom_right)
+            font_path = "font/arial.ttf"
             font = ImageFont.truetype(font_path, font_size)
 
-            #roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
-            #blurred_roi = cv2.blur(roi, (50, 50))
-            #img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
             draw.text((top_left[0], top_left[1]), text.lower(), font=font, fill=(0, 0, 0))
 
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
-
+    
     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     plt.show()
 
@@ -109,7 +118,7 @@ def Main():
         if img is None:
             logging.error("Napaka pri branju slike")
             return
-        izpisTekst(allText)
+        #izpisTekst(allText)
         #prikaziSliko(img)
         prekrijTekst(result1, img)
         return allText
