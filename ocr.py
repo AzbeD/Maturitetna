@@ -6,8 +6,9 @@ import tkinter
 from tkinter import filedialog
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
+from deep_translator import GoogleTranslator
 
-img_path = "Slike/Random/doors.jpg"
+img_path = "Slike/Random/subway.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -73,20 +74,27 @@ def vrniFontSize(top_left, bottom_right):
     elif size > 450:
         fontscale = 80
     return fontscale
-        
 
-def prekrijTekst(result, img):
+def translateText(text, jezik):
+    if(jezik == 'en'):
+        translated_text = GoogleTranslator(source='en', target='sl').translate(text)
+        print(f"Original: {text} | Translated: {translated_text}")
+        return translated_text
+    elif(jezik == 'sl'):
+        translated_text = GoogleTranslator(source='sl', target='en').translate(text)
+        print(f"Original: {text} | Translated: {translated_text}")
+        return translated_text
+
+def prekrijTekst(result, img, jezik):
     if img is None:
         logging.error("Napaka pri branju slike")
         return
+    TranslatedText = ""
     for detection in result:
         if(detection[2] > 0.7):
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
             text = detection[1]
-            font_size = vrniFontSize(top_left, bottom_right)
-            font_path = "font/arial.ttf"
-            font = ImageFont.truetype(font_path, font_size)
             roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             blurred_roi = cv2.blur(roi, (100, 100))
             img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
@@ -99,11 +107,11 @@ def prekrijTekst(result, img):
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
             text = detection[1]
+            TranslatedText = translateText(text, jezik)
             font_size = vrniFontSize(top_left, bottom_right)
             font_path = "font/arial.ttf"
             font = ImageFont.truetype(font_path, font_size)
-
-            draw.text((top_left[0], top_left[1]), text.lower(), font=font, fill=(0, 0, 0))
+            draw.text((top_left[0], top_left[1]), TranslatedText.lower(), font=font, fill=(0, 0, 0))
 
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
     
@@ -120,7 +128,8 @@ def Main():
             return
         #izpisTekst(allText)
         #prikaziSliko(img)
-        prekrijTekst(result1, img)
+        #translateText(result1, jezik)
+        prekrijTekst(result1, img, jezik)
         return allText
     else:
         logging.info("Brez zaznanega besedila")
