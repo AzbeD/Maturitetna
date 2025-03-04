@@ -8,7 +8,7 @@ from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
 
-img_path = "Slike/Random/subway.jpg"
+img_path = "Slike/Random/private.jpg"
 #tkinter.Tk().withdraw()
 #img_path = filedialog.askopenfilename()
 
@@ -70,7 +70,6 @@ def vrniFontSize(top_left, bottom_right):
         fontscale = 60
     elif size > 200 and size <= 450:
         fontscale = 70
-        thickness = 3
     elif size > 450:
         fontscale = 80
     return fontscale
@@ -110,7 +109,7 @@ def prekrijTekst(result, img, jezik):
             TranslatedText = translateText(text, jezik)
             font_size = vrniFontSize(top_left, bottom_right)
             font_path = "font/arial.ttf"
-            font = ImageFont.truetype(font_path, font_size)
+            font = ImageFont.truetype(font_path, 30)
             draw.text((top_left[0], top_left[1]), TranslatedText.lower(), font=font, fill=(0, 0, 0))
 
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
