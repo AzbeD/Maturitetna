@@ -8,7 +8,7 @@ from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
 
-img_path = "Slike/Random/closed.jpg"
+img_path = "Slike/Random/knjiga.jpg"
 
 def izberiJezik():
     jezik = input("Vnesi jezik (en/slo): ")
@@ -42,7 +42,7 @@ def readText(jezik):
             bottom_right = tuple(map(int, detection[0][2]))
             if(detection[2] > 0.7):
                 text = detection[1]
-                img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
+                #img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
                 allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
         return allText, img, result
     except Exception as e:
@@ -75,25 +75,24 @@ def vrniFontSize(top_left, bottom_right):
 def translateText(text, jezik):
     if(jezik == 'en'):
         translated_text = GoogleTranslator(source='en', target='sl').translate(text)
-        #print(f"Original: {text} | Translated: {translated_text}")
         return translated_text
     elif(jezik == 'sl'):
         translated_text = GoogleTranslator(source='sl', target='en').translate(text)
-        #print(f"Original: {text} | Translated: {translated_text}")
         return translated_text
 
 def prekrijTekst(result, img, jezik):
     if img is None:
         logging.error("Napaka pri branju slike")
         return
-    TranslatedText = ""
+    
+    full_text = ""
     for detection in result:
         if(detection[2] > 0.7):
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
-            text = detection[1]
             roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             blurred_roi = cv2.blur(roi, (100, 100))
+
             img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
 
     img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -103,13 +102,18 @@ def prekrijTekst(result, img, jezik):
         if(detection[2] > 0.7):
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
+
             text = detection[1]
-            TranslatedText = translateText(text, jezik)
+            full_text += text + " "
+            translated_text = translateText(text, jezik)
             font_size = vrniFontSize(top_left, bottom_right)
             font_path = "font/arial.ttf"
-            font = ImageFont.truetype(font_path, 30)
-            draw.text((top_left[0], top_left[1]), TranslatedText.lower(), font=font, fill=(0, 0, 0))
+            font = ImageFont.truetype(font_path, font_size)
 
+            draw.text((top_left[0], top_left[1]), translated_text.lower(), font=font, fill=(0, 0, 0))
+
+    fullTranslated_text = translateText(full_text.strip(), jezik)    
+    print(fullTranslated_text)
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
     
     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
@@ -123,9 +127,6 @@ def Main():
         if img is None:
             logging.error("Napaka pri branju slike")
             return
-        #izpisTekst(allText)
-        #prikaziSliko(img)
-        #translateText(result1, jezik)
         prekrijTekst(result1, img, jezik)
         return allText
     else:
