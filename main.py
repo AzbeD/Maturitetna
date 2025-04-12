@@ -8,7 +8,7 @@ from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
 
-img_path = "Slike/Random/knjiga.jpg"
+img_path = "Slike/Random/notice.png"
 
 def izberiJezik():
     jezik = input("Vnesi jezik (en/slo): ")
@@ -42,7 +42,6 @@ def readText(jezik):
             bottom_right = tuple(map(int, detection[0][2]))
             if(detection[2] > 0.7):
                 text = detection[1]
-                #img = cv2.rectangle(img, top_left, bottom_right, (0,255,0), 3)
                 allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
         return allText, img, result
     except Exception as e:
@@ -92,7 +91,6 @@ def prekrijTekst(result, img, jezik):
             bottom_right = tuple(map(int, detection[0][2]))
             roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             blurred_roi = cv2.blur(roi, (100, 100))
-
             img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
 
     img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
