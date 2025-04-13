@@ -4,9 +4,10 @@ import logging
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
+import argostranslate.package as arpackage
+import argostranslate.translate as artranslate
 
 
-    
 def readText(jezik, img_path):
     try:
         reader = easyocr.Reader([jezik])
@@ -51,12 +52,23 @@ def vrniFontSize(top_left, bottom_right):
     return fontscale
 
 def translateText(text, jezik):
+
+    arpackage.update_package_index()
+    available_packages = arpackage.get_available_packages()
+    package_to_install = next(
+        filter(
+            lambda x: x.from_code == from_code and x.to_code == to_code, available_packages
+        )
+    )
+    
+    arpackage.install_from_path(package_to_install.download())
+    
     if(jezik == 'en'):
-        translated_text = GoogleTranslator(source='en', target='sl').translate(text)
-        return translated_text
+        translatedText = artranslate.translate(text, "en", "sl")
+        return translatedText
     elif(jezik == 'sl'):
-        translated_text = GoogleTranslator(source='sl', target='en').translate(text)
-        return translated_text
+        translatedText = artranslate.translate(text, "sl", "en")
+        return translatedText
 
 def prekrijTekst(result, img, jezik):
     if img is None:
