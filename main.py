@@ -1,26 +1,13 @@
 import easyocr
 import cv2
-from matplotlib import pyplot as plt
 import logging
-import tkinter
-from tkinter import filedialog
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
 
-img_path = "Slike/Random/ucbenik.jpg"
 
-def izberiJezik():
-    jezik = input("Vnesi jezik (en/slo): ")
-    if jezik == "en":
-        return 'en'
-    elif jezik == "slo":
-        return 'sl'
-    else:
-        logging.error("Napaka pri vnosu jezika")
-        return None
     
-def readText(jezik):
+def readText(jezik, img_path):
     try:
         reader = easyocr.Reader([jezik])
         img = cv2.imread(img_path)
@@ -49,9 +36,6 @@ def readText(jezik):
         logging.error(f"Napaka pri branju teksta: {e}")
         return None, None, None
  
-def prikaziSliko(img):
-    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    plt.show()
 
 def vrniFontSize(top_left, bottom_right):
     fontscale = 1
@@ -84,7 +68,7 @@ def prekrijTekst(result, img, jezik):
         top_left = tuple(map(int, detection[0][0]))
         bottom_right = tuple(map(int, detection[0][2]))
         height = bottom_right[1] - top_left[1]
-        if(detection[2] > 0.7) and (height > 150):
+        if(detection[2] > 0.7) and (height > 0):
             roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             blurred_roi = cv2.blur(roi, (100, 100))
             img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
@@ -96,7 +80,7 @@ def prekrijTekst(result, img, jezik):
         top_left = tuple(map(int, detection[0][0]))
         bottom_right = tuple(map(int, detection[0][2]))
         height = bottom_right[1] - top_left[1]
-        if(detection[2] > 0.7) and (height > 150):
+        if(detection[2] > 0.7) and (height > 0):
             text = detection[1]
             full_text += text + " "
             translated_text = translateText(text, jezik)
@@ -108,19 +92,17 @@ def prekrijTekst(result, img, jezik):
 
     fullTranslated_text = translateText(full_text.strip(), jezik)    
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
-    
-    prikaziSliko(img)
+    return img
 
-def Main():
-    jezik = izberiJezik()
-    result = readText(jezik)
+def Main(img_path, jezik):
+    result = readText(jezik, img_path)
     if result:
         allText, img, result1 = result
         if img is None:
             logging.error("Napaka pri branju slike")
             return
-        prekrijTekst(result1, img, jezik)
-        return allText
+        img = prekrijTekst(result1, img, jezik)
+        return img
     else:
         logging.info("Brez zaznanega besedila")
         return None
