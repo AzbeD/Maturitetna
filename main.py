@@ -4,7 +4,6 @@ import logging
 from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
-import matplotlib.pyplot as plt
 
 def readText(jezik, img_path):
     try:
@@ -49,15 +48,16 @@ def vrniFontSize(top_left, bottom_right):
         fontscale = 80
     return fontscale
 
-def translateText(text, jezik):
-    if(jezik == 'en'):
-        translated_text = GoogleTranslator(source='en', target='sl').translate(text)
+def translateText(text, izvorniJezik, ciljniJezik):
+    try:
+        translated_text = GoogleTranslator(source=izvorniJezik, target=ciljniJezik).translate(text)
         return translated_text
-    elif(jezik == 'sl'):
-        translated_text = GoogleTranslator(source='sl', target='en').translate(text)
-        return translated_text
+    except Exception as e:
+        logging.error(f"Napaka pri prevajanju: {e}")
+        return text
 
-def prekrijTekst(result, img, jezik):
+
+def prekrijTekst(result, img, izvorniJezik, ciljniJezik):
     if img is None:
         logging.error("Napaka pri branju slike")
         return
@@ -82,32 +82,29 @@ def prekrijTekst(result, img, jezik):
         if(detection[2] > 0.7) and (height > 0):
             text = detection[1]
             full_text += text + " "
-            translated_text = translateText(text, jezik)
+            translated_text = translateText(text, izvorniJezik, ciljniJezik)
             font_size = vrniFontSize(top_left, bottom_right)
             font_path = "font/arial.ttf"
             font = ImageFont.truetype(font_path, font_size)
-
             draw.text((top_left[0], top_left[1]), translated_text.lower(), font=font, fill=(0, 0, 0))
 
-    fullTranslated_text = translateText(full_text.strip(), jezik)    
+    fullTranslated_text = translateText(full_text.strip(), izvorniJezik, ciljniJezik)    
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
-    plt.imshow(img)
-    plt.show()
 
     return img
 
-def Main(img_path, jezik):
-    result = readText(jezik, img_path)
+def Main(img_path, izvorniJezik, ciljniJezik):
+    result = readText(izvorniJezik, img_path)
     if result:
         allText, img, result1 = result
         if img is None:
             logging.error("Napaka pri branju slike")
             return
-        img = prekrijTekst(result1, img, jezik)
+        img = prekrijTekst(result1, img, izvorniJezik, ciljniJezik)
         return img
     else:
         logging.info("Brez zaznanega besedila")
         return None
 
 if __name__ == "__main__":
-    Main("Slike/testneSlike/touch.png", "en")
+    Main("Slike/Random/dnevnik.jpg", "sl")

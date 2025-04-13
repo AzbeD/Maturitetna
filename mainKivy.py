@@ -8,6 +8,7 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.camera import Camera
 from kivy.graphics.texture import Texture
+from kivy.uix.spinner import Spinner
 from main import Main
 
 class OCRApp(App):
@@ -15,28 +16,47 @@ class OCRApp(App):
         self.img_path = "captured_image.jpg"
         self.language = None
 
-        layout = BoxLayout(orientation='vertical')
+        layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
 
-        self.camera = Camera(play=True, resolution=(640, 480))
+        self.camera = Camera(play=True, resolution=(1280, 720))  # Increased resolution for better quality
         layout.add_widget(self.camera)
 
-        self.language_input = TextInput(hint_text="Enter language (en/slo)", multiline=False)
-        layout.add_widget(self.language_input)
+        # Language input
+        self.language_from_spinner = Spinner(
+            text="Izberi izvirni jezik",
+            values=[
+                'croatian', 'english', 'french', 'german', 'greek', 'italian',
+                'polish', 'portuguese', 'romanian', 'russian', 'serbian',
+                'slovak', 'slovenian', 'spanish'
+            ],
+            size_hint_y=None,
+            height=40
+        )
+        layout.add_widget(self.language_from_spinner)        
 
-        capture_button = Button(text="Capture Image")
-        capture_button.bind(on_press=self.capture_image)
-        layout.add_widget(capture_button)
 
-        process_button = Button(text="Process Image")
-        process_button.bind(on_press=self.process_image)
-        layout.add_widget(process_button)
+        self.language_to_spinner = Spinner(
+            text="Izberi ciljni jezik",
+            values=[
+                'croatian', 'english', 'french', 'german', 'greek', 'italian',
+                'polish', 'portuguese', 'romanian', 'russian', 'serbian',
+                'slovak', 'slovenian', 'spanish'
+            ],
+            size_hint_y=None,
+            height=40
+        )
+        layout.add_widget(self.language_to_spinner)
 
-        self.image_widget = Image()
+        capture_process_button = Button(text="Capture & Process Image", size_hint_y=None, height=50)
+        capture_process_button.bind(on_press=self.capture_and_process)
+        layout.add_widget(capture_process_button)
+
+        self.image_widget = Image(size_hint_y=None, height=400)
         layout.add_widget(self.image_widget)
 
         return layout
 
-    def capture_image(self, instance):
+    def capture_and_process(self, instance):
         captured_image = self.camera.texture
         if captured_image:
             buf = captured_image.pixels
@@ -44,14 +64,22 @@ class OCRApp(App):
             cv2.imwrite(self.img_path, cv2.cvtColor(img, cv2.COLOR_RGBA2BGR))
             logging.info(f"Image captured and saved to {self.img_path}")
 
-    def process_image(self, instance):
-        self.language = self.language_input.text.strip()
+        selected_language_from = self.language_from_spinner.text
+        selected_language_to = self.language_to_spinner.text
+        language_map = {
+            'croatian': 'hr', 'english': 'en', 'french': 'fr', 'german': 'de',
+            'greek': 'el', 'italian': 'it', 'polish': 'pl', 'portuguese': 'pt',
+            'romanian': 'ro', 'russian': 'ru', 'serbian': 'sr', 'slovak': 'sk',
+            'slovenian': 'sl', 'spanish': 'es'
+        }
+        self.language_from = language_map.get(selected_language_from)
+        self.language_to = language_map.get(selected_language_to)
 
-        if not self.language:
-            logging.error("Please enter a language.")
+        if not self.language_to or not self.language_from:
+            logging.error("Please select both source and target languages.")
             return
 
-        processed_img = Main(self.img_path, self.language)
+        processed_img = Main(self.img_path, self.language_from, self.language_to)
         if processed_img is not None:
             self.display_image(processed_img)
 
@@ -60,6 +88,6 @@ class OCRApp(App):
         texture = Texture.create(size=(img.shape[1], img.shape[0]), colorfmt='bgr')
         texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
         self.image_widget.texture = texture
-    
+
 if __name__ == "__main__":
     OCRApp().run()
