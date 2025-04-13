@@ -8,7 +8,7 @@ from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
 
-img_path = "Slike/Random/notice.png"
+img_path = "Slike/testneSlike/emergency.png"
 
 def izberiJezik():
     jezik = input("Vnesi jezik (en/slo): ")
