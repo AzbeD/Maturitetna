@@ -8,7 +8,7 @@ from PIL import ImageFont, ImageDraw, Image
 import numpy as np
 from deep_translator import GoogleTranslator
 
-img_path = "Slike/testneSlike/emergency.png"
+img_path = "Slike/Random/ucbenik.jpg"
 
 def izberiJezik():
     jezik = input("Vnesi jezik (en/slo): ")
@@ -40,20 +40,15 @@ def readText(jezik):
         for detection in result:
             top_left = tuple(map(int, detection[0][0]))
             bottom_right = tuple(map(int, detection[0][2]))
-            if(detection[2] > 0.7):
+            height = bottom_right[1] - top_left[1]
+            if(detection[2] > 0.7) and (height > 150):  
                 text = detection[1]
                 allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
         return allText, img, result
     except Exception as e:
         logging.error(f"Napaka pri branju teksta: {e}")
         return None, None, None
-
-def izpisTekst(allText):
-    for text in allText:
-        print(text['text'])
-        print(text['coordinates'])
-        return None
-    
+ 
 def prikaziSliko(img):
     plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     plt.show()
@@ -86,9 +81,10 @@ def prekrijTekst(result, img, jezik):
     
     full_text = ""
     for detection in result:
-        if(detection[2] > 0.7):
-            top_left = tuple(map(int, detection[0][0]))
-            bottom_right = tuple(map(int, detection[0][2]))
+        top_left = tuple(map(int, detection[0][0]))
+        bottom_right = tuple(map(int, detection[0][2]))
+        height = bottom_right[1] - top_left[1]
+        if(detection[2] > 0.7) and (height > 150):
             roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
             blurred_roi = cv2.blur(roi, (100, 100))
             img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
@@ -97,10 +93,10 @@ def prekrijTekst(result, img, jezik):
     draw = ImageDraw.Draw(img_pil)
 
     for detection in result:
-        if(detection[2] > 0.7):
-            top_left = tuple(map(int, detection[0][0]))
-            bottom_right = tuple(map(int, detection[0][2]))
-
+        top_left = tuple(map(int, detection[0][0]))
+        bottom_right = tuple(map(int, detection[0][2]))
+        height = bottom_right[1] - top_left[1]
+        if(detection[2] > 0.7) and (height > 150):
             text = detection[1]
             full_text += text + " "
             translated_text = translateText(text, jezik)
@@ -111,11 +107,9 @@ def prekrijTekst(result, img, jezik):
             draw.text((top_left[0], top_left[1]), translated_text.lower(), font=font, fill=(0, 0, 0))
 
     fullTranslated_text = translateText(full_text.strip(), jezik)    
-    print(fullTranslated_text)
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
     
-    plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    plt.show()
+    prikaziSliko(img)
 
 def Main():
     jezik = izberiJezik()
