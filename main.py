@@ -52,7 +52,15 @@ def vrniFontSize(top_left, bottom_right):
     return fontscale
 
 def translateText(text, jezik):
-
+    if jezik == 'en':
+        from_code = "en"
+        to_code = "sl"
+    elif jezik == 'sl':
+        from_code = "sl"
+        to_code = "en"
+    else:
+        logging.error("Invalid language code")
+        return text
     arpackage.update_package_index()
     available_packages = arpackage.get_available_packages()
     package_to_install = next(
