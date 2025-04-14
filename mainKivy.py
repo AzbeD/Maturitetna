@@ -23,11 +23,11 @@ class OCRApp(App):
 
         # Language input
         self.language_from_spinner = Spinner(
-            text="Izberi izvirni jezik",
+            text="Izberi izvorni jezik",
             values=[
-                'croatian', 'english', 'french', 'german', 'greek', 'italian',
-                'polish', 'portuguese', 'romanian', 'russian', 'serbian',
-                'slovak', 'slovenian', 'spanish'
+                'angleščina', 'francoščina', 'grščina', 'hrvaščina', 'italijanščina', 'nemščina',
+                'poljščina', 'portugalščina', 'romunščina', 'ruščina', 'srbščina', 'slovaščina',
+                'slovenščina', 'španščina'
             ],
             size_hint_y=None,
             height=40
@@ -38,16 +38,16 @@ class OCRApp(App):
         self.language_to_spinner = Spinner(
             text="Izberi ciljni jezik",
             values=[
-                'croatian', 'english', 'french', 'german', 'greek', 'italian',
-                'polish', 'portuguese', 'romanian', 'russian', 'serbian',
-                'slovak', 'slovenian', 'spanish'
+                'angleščina', 'francoščina', 'grščina', 'hrvaščina', 'italijanščina', 'nemščina',
+                'poljščina', 'portugalščina', 'romunščina', 'ruščina', 'srbščina', 'slovaščina',
+                'slovenščina', 'španščina'
             ],
             size_hint_y=None,
             height=40
         )
         layout.add_widget(self.language_to_spinner)
 
-        capture_process_button = Button(text="Capture & Process Image", size_hint_y=None, height=50)
+        capture_process_button = Button(text="Zajemi in sprocesiraj sliko", size_hint_y=None, height=50)
         capture_process_button.bind(on_press=self.capture_and_process)
         layout.add_widget(capture_process_button)
 
@@ -62,21 +62,21 @@ class OCRApp(App):
             buf = captured_image.pixels
             img = np.frombuffer(buf, dtype=np.uint8).reshape(captured_image.height, captured_image.width, 4)
             cv2.imwrite(self.img_path, cv2.cvtColor(img, cv2.COLOR_RGBA2BGR))
-            logging.info(f"Image captured and saved to {self.img_path}")
+            logging.info(f"Slika zajeta in shranjena v {self.img_path}")
 
         selected_language_from = self.language_from_spinner.text
         selected_language_to = self.language_to_spinner.text
         language_map = {
-            'croatian': 'hr', 'english': 'en', 'french': 'fr', 'german': 'de',
-            'greek': 'el', 'italian': 'it', 'polish': 'pl', 'portuguese': 'pt',
-            'romanian': 'ro', 'russian': 'ru', 'serbian': 'sr', 'slovak': 'sk',
-            'slovenian': 'sl', 'spanish': 'es'
+            'angleščina': 'en', 'francoščina': 'fr', 'grščina': 'el', 'hrvaščina': 'hr',
+            'italijanščina': 'it', 'nemščina': 'de', 'poljščina': 'pl', 'portugalščina': 'pt',
+            'romunščina': 'ro', 'ruščina': 'ru', 'srbščina': 'sr', 'slovaščina': 'sk',
+            'slovenščina': 'sl', 'španščina': 'es'
         }
         self.language_from = language_map.get(selected_language_from)
         self.language_to = language_map.get(selected_language_to)
-
+        print(f"Selected languages: {self.language_from} to {self.language_to}")
         if not self.language_to or not self.language_from:
-            logging.error("Please select both source and target languages.")
+            logging.error("Prosimo izberite oba izvorni in ciljni jezik.")
             return
 
         processed_img = Main(self.img_path, self.language_from, self.language_to)

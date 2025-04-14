@@ -86,7 +86,7 @@ def prekrijTekst(result, img, izvorniJezik, ciljniJezik):
             font_size = vrniFontSize(top_left, bottom_right)
             font_path = "font/arial.ttf"
             font = ImageFont.truetype(font_path, font_size)
-            draw.text((top_left[0], top_left[1]), translated_text.lower(), font=font, fill=(0, 0, 0))
+            draw.text((top_left[0], top_left[1]), translated_text, font=font, fill=(0, 0, 0))
 
     fullTranslated_text = translateText(full_text.strip(), izvorniJezik, ciljniJezik)    
     img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
