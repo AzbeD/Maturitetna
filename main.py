@@ -18,7 +18,7 @@ def readText(jezik, img_path):
         result = reader.readtext(img_gray)
 
         if not result:
-            logging.error("Ni zaznanega besedila")
+            logging.info("Brez zaznanega besedila")
             return
             
         allText =  []
@@ -102,9 +102,6 @@ def Main(img_path, izvorniJezik, ciljniJezik):
             return
         img = prekrijTekst(result1, img, izvorniJezik, ciljniJezik)
         return img
-    else:
-        logging.info("Brez zaznanega besedila")
-        return None
 
 if __name__ == "__main__":
     Main("Slike/Random/dnevnik.jpg", "sl")
