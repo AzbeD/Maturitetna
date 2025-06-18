@@ -1,107 +1,92 @@
-import easyocr
-import cv2
 import logging
-from PIL import ImageFont, ImageDraw, Image
 import numpy as np
-from deep_translator import GoogleTranslator
+import cv2
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.image import Image
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.camera import Camera
+from kivy.graphics.texture import Texture
+from kivy.uix.spinner import Spinner
+from mainOld import Main
 
-def readText(jezik, img_path):
-    try:
-        reader = easyocr.Reader([jezik])
-        img = cv2.imread(img_path)
+class OCRApp(App):
+    def build(self):
+        self.img_path = "captured_image.jpg"
+        self.language = None
 
-        if img is None:
-            logging.error(f"Napaka pri branju slike {img_path}")
-            return None, None, None
-            
-        img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        result = reader.readtext(img_gray)
+        layout = BoxLayout(orientation='vertical', padding=20, spacing=10)
 
-        if not result:
-            logging.info("Brez zaznanega besedila")
+        self.camera = Camera(play=True, resolution=(1280, 720), size_hint_y=0.7)
+        layout.add_widget(self.camera)
+    
+        self.language_from_spinner = Spinner(
+            text="Izberi izvorni jezik",
+            values=[
+                'angleščina', 'francoščina', 'grščina', 'hrvaščina', 'italijanščina', 'nemščina',
+                'poljščina', 'portugalščina', 'romunščina', 'ruščina', 'srbščina', 'slovaščina',
+                'slovenščina', 'španščina'
+            ],
+            size_hint_y=None,
+            height=40
+        )
+        layout.add_widget(self.language_from_spinner)        
+
+
+        self.language_to_spinner = Spinner(
+            text="Izberi ciljni jezik",
+            values=[
+                'angleščina', 'francoščina', 'grščina', 'hrvaščina', 'italijanščina', 'nemščina',
+                'poljščina', 'portugalščina', 'romunščina', 'ruščina', 'srbščina', 'slovaščina',
+                'slovenščina', 'španščina'
+            ],
+            size_hint_y=None,
+            height=40
+        )
+        layout.add_widget(self.language_to_spinner)
+
+        capture_process_button = Button(text="Zajemi in sprocesiraj sliko", size_hint_y=None, height=50)
+        capture_process_button.bind(on_press=self.capture_and_process)
+        layout.add_widget(capture_process_button)
+
+        self.image_widget = Image(size_hint_y=None, height=400)
+        layout.add_widget(self.image_widget)
+
+        return layout
+
+    def capture_and_process(self, instance):
+        captured_image = self.camera.texture
+        if captured_image:
+            buf = captured_image.pixels
+            img = np.frombuffer(buf, dtype=np.uint8).reshape(captured_image.height, captured_image.width, 4)
+            cv2.imwrite(self.img_path, cv2.cvtColor(img, cv2.COLOR_RGBA2BGR))
+            logging.info(f"Slika zajeta in shranjena v {self.img_path}")
+
+        selected_language_from = self.language_from_spinner.text
+        selected_language_to = self.language_to_spinner.text
+        language_map = {
+            'angleščina': 'en', 'francoščina': 'fr', 'grščina': 'el', 'hrvaščina': 'hr',
+            'italijanščina': 'it', 'nemščina': 'de', 'poljščina': 'pl', 'portugalščina': 'pt',
+            'romunščina': 'ro', 'ruščina': 'ru', 'srbščina': 'sr', 'slovaščina': 'sk',
+            'slovenščina': 'sl', 'španščina': 'es'
+        }
+        self.language_from = language_map.get(selected_language_from)
+        self.language_to = language_map.get(selected_language_to)
+        print(f"Selected languages: {self.language_from} to {self.language_to}")
+        if not self.language_to or not self.language_from:
+            logging.error("Prosimo izberite oba izvorni in ciljni jezik.")
             return
-            
-        allText =  []
-        for detection in result:
-            top_left = tuple(map(int, detection[0][0]))
-            bottom_right = tuple(map(int, detection[0][2]))
-            height = bottom_right[1] - top_left[1]
-            if(detection[2] > 0.7) and (height > 150):  
-                text = detection[1]
-                allText.append({'text': text.lower(), 'coordinates': {'top_left': top_left, 'bottom_right': bottom_right}})
-        return allText, img, result
-    except Exception as e:
-        logging.error(f"Napaka pri branju teksta: {e}")
-        return None, None, None
- 
 
-def vrniFontSize(top_left, bottom_right):
-    fontscale = 1
-    size = bottom_right[1] - top_left[1]
-    if size > 0 and size <= 100:
-        fontscale = 50
-    elif size > 100 and size <= 200:
-        fontscale = 60
-    elif size > 200 and size <= 450:
-        fontscale = 70
-    elif size > 450:
-        fontscale = 80
-    return fontscale
+        processed_img = Main(self.img_path, self.language_from, self.language_to)
+        if processed_img is not None:
+            self.display_image(processed_img)
 
-def translateText(text, izvorniJezik, ciljniJezik):
-    try:
-        translated_text = GoogleTranslator(source=izvorniJezik, target=ciljniJezik).translate(text)
-        return translated_text
-    except Exception as e:
-        logging.error(f"Napaka pri prevajanju: {e}")
-        return text
-
-
-def prekrijTekst(result, img, izvorniJezik, ciljniJezik):
-    if img is None:
-        logging.error("Napaka pri branju slike")
-        return
-      
-    full_text = ""
-    for detection in result:
-        top_left = tuple(map(int, detection[0][0]))
-        bottom_right = tuple(map(int, detection[0][2]))
-        height = bottom_right[1] - top_left[1]
-        if(detection[2] > 0.7) and (height > 0):
-            roi = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
-            blurred_roi = cv2.blur(roi, (100, 100))
-            img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]] = blurred_roi
-
-    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-    draw = ImageDraw.Draw(img_pil)
-
-    for detection in result:
-        top_left = tuple(map(int, detection[0][0]))
-        bottom_right = tuple(map(int, detection[0][2]))
-        height = bottom_right[1] - top_left[1]
-        if(detection[2] > 0.7) and (height > 0):
-            text = detection[1]
-            full_text += text + " "
-            translated_text = translateText(text, izvorniJezik, ciljniJezik)
-            font_size = vrniFontSize(top_left, bottom_right)
-            font_path = "font/arial.ttf"
-            font = ImageFont.truetype(font_path, font_size)
-            draw.text((top_left[0], top_left[1]), translated_text, font=font, fill=(0, 0, 0))
-
-    fullTranslated_text = translateText(full_text.strip(), izvorniJezik, ciljniJezik)    
-    img = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
-
-    return img
-
-def Main(img_path, izvorniJezik, ciljniJezik):
-    result = readText(izvorniJezik, img_path)
-    if result:
-        allText, img, result1 = result
-        if img is None:
-            logging.error("Napaka pri branju slike")
-            return
-        img = prekrijTekst(result1, img, izvorniJezik, ciljniJezik)
-        return img
+    def display_image(self, img):
+        buf = cv2.flip(img, 0).tobytes()
+        texture = Texture.create(size=(img.shape[1], img.shape[0]), colorfmt='bgr')
+        texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+        self.image_widget.texture = texture
 
 if __name__ == "__main__":
-    Main("Slike/Random/dnevnik.jpg", "sl")
+    OCRApp().run()
